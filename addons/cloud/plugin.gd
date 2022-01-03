@@ -2,7 +2,10 @@ tool
 extends EditorPlugin
 
 """
+	雲シェーダー for Godot Engine by あるる（きのもと 結衣）
 	Cloud Shader for Godot Engine by Yui Kinomoto @arlez80
+
+	MIT License
 """
 
 func _enter_tree( ):

@@ -5,6 +5,7 @@ class_name CloudDome
 
 #
 # ドームの動的移動 + 動的生成雲の設定 by きのもと 結衣 @arlez80
+# Cloud Dome Script by Yui Kinomoto @arlez80
 #
 
 export(Color) var cloud_color:Color = Color(1.0,1.0,1.0,1.0)
@@ -27,9 +28,15 @@ export(bool) var cloud_lower_enabled:bool = false setget _set_cloud_lower_enable
 export(bool) var auto_follow_camera:bool = true
 export(float) var auto_follow_camera_append_height:float = 0.0
 
+export(bool) var cloud_shadow_enabled:bool = true setget _set_cloud_shadow_enabled
+export(float) var cloud_shadow_height:float = 50.0
+
 var mesh_inverse:bool = false
+var shadow_mesh_instance:MeshInstance = null
 
 func _ready( ):
+	self.shadow_mesh_instance = MeshInstance.new()
+	self.add_child( self.shadow_mesh_instance )
 	self._regen_mesh( )
 
 func _set_draw_count( _draw_count:int ) -> int:
@@ -92,6 +99,11 @@ func _set_cloud_lower_enabled( _cloud_lower_enabled:bool ) -> bool:
 	self._regen_mesh( )
 	return cloud_lower_enabled
 
+func _set_cloud_shadow_enabled( _cloud_shadow_enabled:bool ) -> bool:
+	cloud_shadow_enabled = _cloud_shadow_enabled
+	self._regen_mesh( )
+	return cloud_shadow_enabled
+
 func _regen_mesh( ):
 	self.mesh_inverse = false
 	if self.cloud_upper_enabled and self.cloud_lower_enabled:
@@ -137,6 +149,18 @@ func _regen_mesh( ):
 			currently_shader.next_pass = cs
 		currently_shader = cs
 
+	# 影の生成
+	var shadow_mesh:PlaneMesh = PlaneMesh.new()
+	shadow_mesh.size = Vector2(300,300)
+	self.shadow_mesh_instance.visible = self.cloud_shadow_enabled
+	self.shadow_mesh_instance.mesh = shadow_mesh
+	var css:ShaderMaterial = preload( "CloudShadowMat.tres" ).duplicate( )
+	css.set_shader_param( "seed", self.cloud_seed )
+	css.set_shader_param( "speed", self.cloud_speed )
+	css.set_shader_param( "transform_speed", self.cloud_transform_speed )
+	self.shadow_mesh_instance.material_override = css
+	self.shadow_mesh_instance.transform.origin.y = self.cloud_shadow_height
+
 func _process( delta:float ):
 	self._move_to_camera( )
 
@@ -155,7 +179,7 @@ func _move_to_camera( ):
 	var middle_size:Vector3 = Vector3.ONE * middle
 	var middle_y:float = -middle if self.mesh_inverse else middle
 
-	self.transform.origin = camera.global_transform.origin + Vector3( 0.0, self.auto_follow_camera_append_height, 0.0 )
-	self.transform.basis.x = Vector3( middle, 0.0, 0.0 )
-	self.transform.basis.y = Vector3( 0.0, middle_y, 0.0 )
-	self.transform.basis.z = Vector3( 0.0, 0.0, middle )
+	self.global_transform.origin = camera.global_transform.origin + Vector3( 0.0, self.auto_follow_camera_append_height, 0.0 )
+	self.global_transform.basis.x = Vector3( middle, 0.0, 0.0 )
+	self.global_transform.basis.y = Vector3( 0.0, middle_y, 0.0 )
+	self.global_transform.basis.z = Vector3( 0.0, 0.0, middle )
