@@ -35,10 +35,6 @@ var mesh_inverse:bool = false
 var shadow_mesh_instance:MeshInstance = null
 
 func _ready( ):
-	self.shadow_mesh_instance = MeshInstance.new()
-	var shadow_mesh:PlaneMesh = PlaneMesh.new()
-	shadow_mesh.size = Vector2(300,300)
-	self.shadow_mesh_instance.mesh = shadow_mesh
 	self.add_child( self.shadow_mesh_instance )
 
 	self._regen_mesh( )
@@ -154,6 +150,11 @@ func _regen_mesh( ):
 		currently_shader = cs
 
 	# 影の生成
+	if self.shadow_mesh_instance == null:
+		self.shadow_mesh_instance = MeshInstance.new()
+		var shadow_mesh:PlaneMesh = PlaneMesh.new()
+		shadow_mesh.size = Vector2(300,300)
+		self.shadow_mesh_instance.mesh = shadow_mesh
 	self.shadow_mesh_instance.visible = self.cloud_shadow_enabled
 	var css:ShaderMaterial = preload( "CloudShadowMat.tres" ).duplicate( )
 	css.set_shader_param( "seed", self.cloud_seed )
